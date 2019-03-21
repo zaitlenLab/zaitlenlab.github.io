@@ -1,0 +1,51 @@
+<html>
+<head>
+  <link rel="stylesheet" href="assets/css/main.css" />
+<script>
+  fetch('http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=Zaitlen, Noah[Full Author Name] OR Zaitlen, Noah[Full Investigator Name]&retmode=json&retmax=1000', mode: 'no-cors'))
+      .then(function(response) {
+          return response.json();
+      }).then(function(json) {
+          const ids = json.esearchresult.idlist;
+          fetch('http://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&id=' + ids + '&retmode=json')
+            .then(function(response) {
+                  return response.json();
+              })
+              .then(function(json) {
+                console.log(json);
+                  const returnedIds = json.result.uids;
+                  for (let i = 0; i<returnedIds.length; i++){
+                    let id = returnedIds[i];
+                    let currentPaper = json.result[id];
+                    let citation = "";
+                    for(author in currentPaper.authors){
+                      let name = currentPaper.authors[author].name;
+                      let z = name.includes("Zaitlen");
+                      if (z){
+                        citation+='<b>'
+                      }
+                      citation+=name+', ';
+                      if (z){
+                        citation+='</b>'
+                      }
+                    }
+                    citation+=' \"'+currentPaper.title+'\" <i>'+currentPaper.fulljournalname+'</i> '+currentPaper.volume+'.'+currentPaper.issue+' ('+currentPaper.pubdate+'): '+currentPaper.pages+'.';
+                    let elemDiv = document.createElement('li');
+                    if (currentPaper.fulljournalname.toLowerCase().includes("nature")){
+                      elemDiv.classList.add("grad1")
+                    }
+                    elemDiv.innerHTML = citation;
+                    document.getElementById("articles").appendChild(elemDiv);
+                  }
+              })
+      });
+    </script>
+</head>
+<body>
+  <ul>
+  <div id="articles">
+
+  </div>
+  </ul>
+</body>
+</html>
